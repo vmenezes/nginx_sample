@@ -85,3 +85,43 @@ actually using a sample Systemd service provided by NGINX installation(we
 can use this as a sample if we need to create a custom Systemd NGINX service
 as well).
 
+Breakdown of default config:
+
+- Systemd service is a link at
+`/etc/systemd/system/multi-user.target.wants/nginx.service` that points to
+`/lib/systemd/system/nginx.service`
+- General NGINX confit is found at `/etc/nginx/nginx/conf`
+- The site running is a link at `/etc/nginx/sites-enabled/default` that
+points to `/etc/nginx/sites-available/default`
+- `/etc/nginx/sites-available/default` is serving the webpage
+`/var/www/html/index.nginx-debian.html`
+
+
+## Disable default site
+
+```
+cd /etc/nginx
+sudo rm sites-enabled/default
+ll sites-*
+```
+
+Even thou we don't have any site enabled now, if we refresh the browser at
+`http://localhost:5000` it still serving the page because we didn't reload
+NGINX service. Do it with `sudo systemctl restart nginx` and now confirm
+the NGINX is not listening on port 80 by running `sudo netstat -ltnp`
+and trying to refresh the browser.
+
+
+## Re-enable default site
+
+To enable the website again we just need to do the reverse. Create the link
+on `sites-enabled` to `sites-available/default` and restart the service.
+
+```
+cd /etc/nginx
+ll sites-*
+sudo ln -s /etc/nginx/sites-available/default sites-enabled/default
+ll sites-*
+sudo systemctl restart nginx
+```
+
