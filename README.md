@@ -111,6 +111,9 @@ NGINX service. Do it with `sudo systemctl restart nginx` and now confirm
 the NGINX is not listening on port 80 by running `sudo netstat -ltnp`
 and trying to refresh the browser.
 
+This could also be accomplished using the provided Ansible playbook as
+`ansible-playbook -c local -i 'localhost,' /vagrant/playbook_disable_default.yml`
+
 
 ## Re-enable default site
 
@@ -124,4 +127,7 @@ sudo ln -s /etc/nginx/sites-available/default sites-enabled/default
 ll sites-*
 sudo systemctl restart nginx
 ```
+
+This could also be accomplished using the provided Ansible playbook as
+`ansible-playbook -c local -i 'localhost,' /vagrant/playbook_enable_default.yml`
 
