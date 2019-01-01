@@ -1,0 +1,13 @@
+---
+- name: Base Ansible Playbook
+  hosts: all
+  become: yes
+  become_method: sudo
+
+  tasks:
+    - name: set timezone to America/New_York
+      timezone: name=America/New_York
+
+    - name: Run apt-get update
+      apt: update_cache=yes
+
