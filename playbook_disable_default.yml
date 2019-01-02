@@ -5,13 +5,5 @@
   become_method: sudo
 
   tasks:
-    - name: deletes symlink for default site from NGINX sites-enabled
-      file:
-        path: /etc/nginx/sites-enabled/default
-        state: absent
-
-    - name: restart NGINX service
-      systemd:
-        name: nginx
-        state: restarted
+    - import_tasks: tasks_disable_default.yml
 
