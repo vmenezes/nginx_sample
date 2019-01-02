@@ -184,3 +184,34 @@ it can be accessed without restarting NGINX at
 This could also be accomplished using the provided Ansible playbook as
 `ansible-playbook -c local -i 'localhost,' /vagrant/playbook_custom_static.yml`
 
+
+# Add extra routes to our static site
+
+Sometimes not all files that need to be served by NGINX will be inside
+the same folder or even if they are, we may want to give it a custom route.
+
+For example, if we add the file `/var/www/mysite/auth/users/index.html`
+it can be seem at `http://localhost:5000/auth/users/` or 
+`http://localhost:5000/auth/users/index.html`. If we want this folder to
+be routed at `http://localhost:5000/members/` instead, we can just add
+a new `location /members/ {}` to our `sites-available/mysite` as below:
+
+```
+cd /etc/nginx
+sudo sh -c "cat > sites-available/mysite" << EOL
+server {
+    listen 80;
+    listen [::]:80;
+    root /var/www/mysite;
+    server_name mysite.com;
+    location /members/ {
+        alias /var/www/mysite/auth/users/;
+    }
+}
+EOL
+sudo systemctl restart nginx
+```
+
+This could also be accomplished using the provided Ansible playbook as
+`ansible-playbook -c local -i 'localhost,' /vagrant/playbook_alias_on_static.yml`
+

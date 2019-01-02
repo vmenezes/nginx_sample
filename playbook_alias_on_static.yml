@@ -1,0 +1,36 @@
+---
+- name: create new route /members/ URL
+  hosts: all
+  become: yes
+  become_method: sudo
+
+  tasks:
+    - name: create /var/www/mysite/auth/users/ folder
+      file:
+        path: /var/www/mysite/auth/users
+        state: directory
+
+    - name: create index.html page for users
+      copy:
+        content: <p>Sample users page.</p>
+        dest: /var/www/mysite/auth/users/index.html
+
+    - name: create sites-available/mysite with custom /members/ URL
+      copy:
+        dest: /etc/nginx/sites-available/mysite
+        content: |
+          server {
+            listen 80;
+            listen [::]:80;
+            root /var/www/mysite;
+            server_name mysite.com;
+            location /members/ {
+              alias /var/www/mysite/auth/users/;
+            }
+          }
+
+    - name: restart NGINX service
+      systemd:
+        name: nginx
+        state: restarted
+
