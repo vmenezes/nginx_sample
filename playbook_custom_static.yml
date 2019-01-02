@@ -1,0 +1,47 @@
+---
+- name: Enable our custom static site on NGINX
+  hosts: all
+  become: yes
+  become_method: sudo
+
+  tasks:
+    - import_tasks: tasks_disable_default.yml
+
+    - name: create NGINX sites-available/mysite
+      blockinfile:
+        create: yes
+        path: /etc/nginx/sites-available/mysite
+        block: |
+          server {
+            listen 80;
+            listen [::]:80;
+            root /var/www/mysite;
+            server_name mysite.com;
+          }
+
+    - name: create /var/www/mysite/ to hod site assets
+      file:
+        path: /var/www/mysite/
+        state: directory
+
+    - name: create index.html page
+      copy:
+        content: <p>Hi, go to <a href=new.html>new site</a></p>
+        dest: /var/www/mysite/index.html
+
+    - name: create new.html page
+      copy:
+        content: <p>This is <strong>MY NEW SITE</strong></p>
+        dest: /var/www/mysite/new.html
+
+    - name: create symlink for mysite on sites-enabled
+      file:
+        src: /etc/nginx/sites-available/mysite
+        dest: /etc/nginx/sites-enabled/mysite
+        state: link
+
+    - name: restart NGINX service
+      systemd:
+        name: nginx
+        state: restarted
+

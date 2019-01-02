@@ -131,3 +131,56 @@ sudo systemctl restart nginx
 This could also be accomplished using the provided Ansible playbook as
 `ansible-playbook -c local -i 'localhost,' /vagrant/playbook_enable_default.yml`
 
+
+## Enable our static site on NGINX
+
+Lets start by deleting the default site and creating a sample HTML page
+
+```
+sudo rm /etc/nginx/sites-enabled/default
+cd /var/www/
+sudo mkdir mysite
+cd mysite
+sudo touch index.html
+echo "<p>Hi, go to <a href=new.html>new site</a></p>" | sudo tee index.html
+sudo touch new.html
+echo "<p>This is <strong>MY NEW SITE</strong></p>" | sudo tee new.html
+```
+
+Now lets create a new site on NGINX pointing to this HTML page at
+`http://localhost:5000/`
+
+```
+cd /etc/nginx
+sudo touch sites-available/mysite
+sudo sh -c "cat > sites-available/mysite" << EOL
+server {
+    listen 80;
+    listen [::]:80;
+    root /var/www/mysite;
+    server_name mysite.com;
+}
+EOL
+```
+
+We can enable this site on NGINX with
+`sudo ln -s /etc/nginx/sites-available/mysite sites-enabled/mysite`, check
+if NGINX config are still valid using running `sudo nginx -t` and restart
+NGINX service with `sudo systemctl restart nginx`.
+
+Notes:
+
+- As no `index` line present on `site-enabled/mysite`, it serves `index.html`
+by default
+- As no `location` line present on `site-enabled/mysite, it assumes `/`
+by default
+- If MY_NEW_FILE.html is created on `/var/www/mysite` it can be accessed
+thru browser without restarting NGINX at
+`http://localhot:5000/MY_NEW_FILE.html`
+- Id new folder NEW_DIR created on `/var/www/mysite` with `index.html` within,
+it can be accessed without restarting NGINX at
+`http://localhot:5000/NEW_DIR`
+
+This could also be accomplished using the provided Ansible playbook as
+`ansible-playbook -c local -i 'localhost,' /vagrant/playbook_custom_static.yml`
+
