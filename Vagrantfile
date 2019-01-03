@@ -5,7 +5,8 @@ Vagrant.configure("2") do |config|
   config.vm.box_version =  "20181214.0.0"
 
   config.vm.network "forwarded_port", guest: 8000, host: 8000
-  config.vm.network "forwarded_port", guest: 80, host: 5000
+  config.vm.network "forwarded_port", guest: 5000, host: 5000
+  config.vm.network "forwarded_port", guest: 80, host: 8080
   config.vm.hostname = "nginx-vm"
 
   config.vm.provision "ansible_local" do |ansible|

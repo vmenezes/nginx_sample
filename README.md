@@ -215,3 +215,41 @@ sudo systemctl restart nginx
 This could also be accomplished using the provided Ansible playbook as
 `ansible-playbook -c local -i 'localhost,' /vagrant/playbook_alias_on_static.yml`
 
+
+# Flask app served by NGINX
+
+Flask is a very popular Python web framework for development of
+web projects and micro-services. Lets see how to create a Flask
+Hello Word app, run it local for to ensure it is working and then
+serve it thru NGINX. Start by installing some requirements.
+
+```
+sudo apt install virtualenv -y
+cd /var/www/
+sudo mkdir myflasksite
+sudo chown vagrant myflaskapp
+cd myflasksite
+virtualenv -p python3 venv
+source venv/bin/activate
+pip freeze
+pip install flask==1.0.2
+pip freeze > requirements.txt
+```
+
+Now that we have a folder for the project, proper Python virtual environment
+with Flask installed and the project `requirements.txt` its time to create
+sample app and run it.
+
+```
+cat > hello.py << EOL
+from flask import Flask
+
+app = Flask(__name__)
+
+@app.route('/')
+def hello():
+  return 'Hello World!'
+EOL
+FLASK_APP=hello.py flask run
+```
+
