@@ -227,7 +227,7 @@ serve it thru NGINX. Start by installing some requirements.
 sudo apt install virtualenv -y
 cd /var/www/
 sudo mkdir myflasksite
-sudo chown vagrant myflaskapp
+sudo chown vagrant myflasksite
 cd myflasksite
 virtualenv -p python3 venv
 source venv/bin/activate
@@ -250,6 +250,20 @@ app = Flask(__name__)
 def hello():
   return 'Hello World!'
 EOL
-FLASK_APP=hello.py flask run
+FLASK_APP=hello.py flask run -h 0.0.0.0
+```
+
+This leaves the Flask development server running on port `5000` and you can
+confirm by opening your browser at `http://localhost:5000` or running on a
+local terminal `curl -i -X GET http://localhost:5000`. As the name suggests,
+this server isnt intended for production but it is an easy way to comfirm
+our Python code is running.
+
+You can press `CTRL c` to stop the development server and lets now setup it
+on Systemd with Gunicorn and NGINX.
+
+```
+pip install gunicorn==19.9.0
+pip freeze > requirements.txt
 ```
 
