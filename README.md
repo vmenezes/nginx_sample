@@ -265,5 +265,72 @@ on Systemd with Gunicorn and NGINX.
 ```
 pip install gunicorn==19.9.0
 pip freeze > requirements.txt
+cat > wsgi.py << EOL
+from hello import app
+
+if __name__ == '__main__':
+    app.run()
+EOL
+venv/bin/gunicorn --workers 2 --bind 0.0.0.0:5000 -m 007 wsgi:app
 ```
+
+This again leaves our small Flask app running on port `5000` but at this time
+served by Gunicorn instead of Flask development server. We can again test
+with `curl -i -X GET http://localhost:5000` and stop with `CTRL c`.
+
+Now lets create setup Gunicorn as a service on Systemd so that it is always
+running on background of our server and make NGINX proxy HTTP requests to it.
+
+```
+cd /etc/systemd/system
+cat > myapp-gunicorn.service << EOL
+[Unit]
+Description=MyApp Gunicorn
+After=multi-user.target
+
+[Service]
+WorkingDirectory=/var/www/myflasksite 
+ExecStart=/var/www/myflasksite/venv/bin/gunicorn --workers 2 --bind 0.0.0.0:5000 -m 007 wsgi:app
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOL
+sudo systemctl daemon-reload
+sudo systemctl status myapp*
+sudo systemctl start myapp*
+```
+
+Now Gunicorn will always serve our app on port 5000 as soon server boots.
+We can see some logs with `sudo journalctl -e` or `sudo tail /var/log/syslog`.
+The service can be controlled/monitored thru Systemd with
+`sudo systemctl status|start|stop|restart myapp*`.
+
+To have NGINX proxing HTTP requests to Gunicorn just setup NGINX as follows:
+
+```
+cd /etc/nginx/
+cat > sites-available/myapp-site << EOL
+server {
+    listen 80;
+    location / {
+        include proxy_params;
+        proxy_pass http://localhost:5000;
+    }
+}
+EOL
+sudo rm sites-enabled/*
+sudo ln -s /etc/nginx/sites-available/myapp-site sites-enabled/myapp-site
+sudo systemctl restart nginx
+```
+
+Congrats, now you have Gunicorn serving your app at 0.0.0.0:5000 and
+NGINX forwarding HTTP requests from port 80 to your Gunicorn.
+(Vagrant then forward port 80 from VM to 8080 of your computer)
+
+Just one thing to get it a bit cleaner, you want HTTP requests to come
+thru NGINX but currently Gunicorn is serving it to the public(this was nice
+for testing but we should fix it now). Just change `0.0.0.0:5000` to
+`127.0.0.1:5000` on `/etc/systemd/myapp-gunicorn.service`. Then
+`sudo systemctl daemon-reload` and `sudo systemctl restart myapp*`
 
